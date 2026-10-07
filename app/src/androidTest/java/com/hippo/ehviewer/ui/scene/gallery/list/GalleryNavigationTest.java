@@ -111,6 +111,16 @@ public class GalleryNavigationTest {
     }
 
     @Test
+    public void gridConfirmOpensTheFocusedGallery() {
+        instrumentation.runOnMainSync(() -> activity.adapter.setType(GalleryAdapterNew.TYPE_GRID));
+        instrumentation.waitForIdleSync();
+        focusFirstCard();
+        key(KeyEvent.KEYCODE_BUTTON_A);
+        assertEquals(1, activity.clicks);
+        assertEquals(1, activity.lastClickedId);
+    }
+
+    @Test
     public void holdingConfirmOpensTheExistingLongClickAction() {
         focusFirstCard();
         instrumentation.sendKeySync(new KeyEvent(KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_CENTER));
