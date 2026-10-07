@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application android:label="@string/odin_app_name">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+    <application android:label="@string/odin_app_name" tools:replace="android:label">
         <activity
             android:name="com.hippo.ehviewer.ui.scene.gallery.list.GalleryNavigationTestActivity"
             android:exported="true"

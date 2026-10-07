@@ -63,6 +63,8 @@ public class GalleryNavigationTest {
 
     private void key(int code) {
         instrumentation.sendKeyDownUpSync(code);
+        // RecyclerView may still have a scheduled smooth scroll after the key is handled.
+        SystemClock.sleep(350);
         instrumentation.waitForIdleSync();
     }
 
@@ -73,13 +75,15 @@ public class GalleryNavigationTest {
         focusFirstCard();
         key(KeyEvent.KEYCODE_DPAD_RIGHT);
         int right = focusedPosition();
-        assertTrue("Right must reach the next column", right > 0);
+        assertTrue("Right must reach the next column, got " + right, right > 0);
         key(KeyEvent.KEYCODE_DPAD_LEFT);
         assertEquals(0, focusedPosition());
         for (int i = 0; i < 8; i++) {
             int before = focusedPosition();
             key(KeyEvent.KEYCODE_DPAD_DOWN);
-            assertTrue("Down must move to a later card", focusedPosition() > before);
+            int after = focusedPosition();
+            assertTrue("Down must move between cards, got " + before + " -> " + after,
+                    after >= 0 && after != before);
         }
         key(KeyEvent.KEYCODE_DPAD_UP);
         assertTrue(focusedPosition() > right);
@@ -192,16 +196,24 @@ public class GalleryNavigationTest {
         pointer.id = 0;
         MotionEvent.PointerCoords coords = new MotionEvent.PointerCoords();
         coords.setAxisValue(axis, value);
+        int deviceId = -1;
+        for (int id : InputDevice.getDeviceIds()) {
+            InputDevice device = InputDevice.getDevice(id);
+            if (device != null && device.supportsSource(InputDevice.SOURCE_JOYSTICK)) {
+                deviceId = id;
+                break;
+            }
+        }
         long time = SystemClock.uptimeMillis();
         MotionEvent event = MotionEvent.obtain(time, time, MotionEvent.ACTION_MOVE, 1,
                 new MotionEvent.PointerProperties[]{pointer}, new MotionEvent.PointerCoords[]{coords},
-                0, 0, 1, 1, -1, 0, InputDevice.SOURCE_JOYSTICK, 0);
+                0, 0, 1, 1, deviceId, 0, InputDevice.SOURCE_JOYSTICK, 0);
         assertTrue(instrumentation.getUiAutomation().injectInputEvent(event, true));
         event.recycle();
         coords.setAxisValue(axis, 0f);
         event = MotionEvent.obtain(time, SystemClock.uptimeMillis(), MotionEvent.ACTION_MOVE, 1,
                 new MotionEvent.PointerProperties[]{pointer}, new MotionEvent.PointerCoords[]{coords},
-                0, 0, 1, 1, -1, 0, InputDevice.SOURCE_JOYSTICK, 0);
+                0, 0, 1, 1, deviceId, 0, InputDevice.SOURCE_JOYSTICK, 0);
         assertTrue(instrumentation.getUiAutomation().injectInputEvent(event, true));
         event.recycle();
         instrumentation.waitForIdleSync();

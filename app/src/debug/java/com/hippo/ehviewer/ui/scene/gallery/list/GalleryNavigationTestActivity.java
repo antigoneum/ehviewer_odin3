@@ -13,6 +13,7 @@ import com.hippo.ehviewer.R;
 import com.hippo.ehviewer.client.data.GalleryInfo;
 import com.hippo.ehviewer.widget.TileThumbNew;
 import com.hippo.widget.ContentLayout;
+import com.hippo.widget.recyclerview.AutoStaggeredGridLayoutManager;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -43,7 +44,7 @@ public class GalleryNavigationTestActivity extends Activity {
         root.addView(content, new LinearLayout.LayoutParams(-1, 0, 1));
         setContentView(root);
 
-        GalleryInfo[] galleries = new GalleryInfo[60];
+        GalleryInfo[] galleries = new GalleryInfo[120];
         for (int i = 0; i < galleries.length; i++) {
             GalleryInfo gallery = new GalleryInfo();
             gallery.gid = i + 1;
@@ -51,7 +52,7 @@ public class GalleryNavigationTestActivity extends Activity {
             galleries[i] = gallery;
         }
         adapter = new GalleryAdapterNew(getLayoutInflater(), getResources(), recyclerView,
-                GalleryAdapterNew.TYPE_LIST, false, executor, false) {
+                getIntent().getIntExtra("layout", GalleryAdapterNew.TYPE_LIST), false, executor, false) {
             @Override
             public int getItemCount() {
                 return galleries.length;
@@ -88,6 +89,11 @@ public class GalleryNavigationTestActivity extends Activity {
                 return true;
             }
         };
+        if (adapter.getType() == GalleryAdapterNew.TYPE_LIST) {
+            // Exercise horizontal navigation without changing the app's preferences.
+            ((AutoStaggeredGridLayoutManager) recyclerView.getLayoutManager()).setColumnSize(
+                    getResources().getDimensionPixelOffset(R.dimen.gallery_list_column_width_short));
+        }
         adapter.setThumbItemClickListener((position, view, gallery) -> thumbnailClicks++);
         recyclerView.setOnItemClickListener((parent, view, position, id) -> {
             clicks++;
