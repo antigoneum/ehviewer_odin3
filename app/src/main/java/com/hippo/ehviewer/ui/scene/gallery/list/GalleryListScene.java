@@ -2078,6 +2078,16 @@ public final class GalleryListScene extends BaseScene
             return null != mHelper ? mHelper.getDataAtEx(position) : null;
         }
 
+        @Override
+        protected boolean onItemClick(View view, GalleryInfo galleryInfo) {
+            return GalleryListScene.this.onItemClick(view, galleryInfo);
+        }
+
+        @Override
+        protected boolean onItemLongClick(View view, GalleryInfo galleryInfo) {
+            return GalleryListScene.this.onItemLongClick(galleryInfo, view);
+        }
+
     }
 
     class GalleryListHelper extends GalleryInfoContentHelper {

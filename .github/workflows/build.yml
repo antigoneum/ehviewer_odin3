@@ -2,7 +2,7 @@ name: Build
 
 on:
   push:
-    branches: [ BiLi_PC_Gamer ]
+    branches: [ BiLi_PC_Gamer, odin3-controller ]
   pull_request:
     branches: [ BiLi_PC_Gamer ]
   workflow_dispatch:
@@ -24,7 +24,7 @@ jobs:
       - name: Build
         run: |
           chmod +x ./gradlew
-          ./gradlew app:assembleDebug
+          ./gradlew app:assembleDebug app:assembleDebugAndroidTest
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
