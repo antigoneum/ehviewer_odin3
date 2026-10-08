@@ -150,7 +150,7 @@ public class GalleryNavigationTest {
 
         // Complete loading while the key is still held, then send a hardware repeat.
         instrumentation.runOnMainSync(() -> activity.completeCurrentPage(1));
-        instrumentation.waitForIdleSync();
+        awaitLayout();
         instrumentation.sendKeySync(new KeyEvent(downTime, SystemClock.uptimeMillis(),
                 KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_UP, 1));
         instrumentation.sendKeySync(new KeyEvent(downTime, SystemClock.uptimeMillis(),
