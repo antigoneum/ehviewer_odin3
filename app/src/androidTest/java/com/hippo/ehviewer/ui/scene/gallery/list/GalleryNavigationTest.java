@@ -93,7 +93,8 @@ public class GalleryNavigationTest {
         instrumentation.sendKeyDownUpSync(code);
         // RecyclerView may still have a scheduled smooth scroll after the key is handled.
         SystemClock.sleep(350);
-        instrumentation.waitForIdleSync();
+        // A manually pending refresh keeps animating, so the whole UI may never be idle.
+        instrumentation.runOnMainSync(() -> assertTrue(activity.hasWindowFocus()));
     }
 
     private void checkMovementAndScrolling() {
@@ -142,8 +143,7 @@ public class GalleryNavigationTest {
         long downTime = SystemClock.uptimeMillis();
         instrumentation.sendKeySync(new KeyEvent(downTime, downTime,
                 KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_UP, 0));
-        instrumentation.waitForIdleSync();
-        assertEquals(before + 1, activity.helper.requests);
+        instrumentation.runOnMainSync(() -> assertEquals(before + 1, activity.helper.requests));
         assertEquals(ContentLayout.ContentHelper.TYPE_REFRESH, activity.helper.requestType);
         assertEquals(0, activity.helper.requestPage);
         assertEquals(0, focusedPosition());
