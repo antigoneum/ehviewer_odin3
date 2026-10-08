@@ -38,10 +38,12 @@ APK 输出在 `app/build/outputs/apk/`。fork 的 Build 工作流会同时构建
 
 `MenuNavigationTest` 使用实际的主界面抽屉、搜索栏和卡片布局，覆盖列表／网格进入菜单、菜单项选择、A／确认／Enter 激活、焦点限制与返回、滚动后的菜单可达性，以及摇杆轴输入。
 
+`TouchNavigationTest` 使用触屏事件验证卡片／封面、图片／页码／预览空白区域、长按、滚动、触摸刷新与分页、菜单点击与手势、搜索框和搜索栏显隐。详情页的预览空白区域和页码保留原有的“更多预览”入口，手柄缩略图通过按键转发打开图片，不占用这些触摸入口。
+
 安装应用 APK 和测试 APK 后运行：
 
 ```sh
-adb shell am instrument -w -e class com.hippo.ehviewer.ui.scene.gallery.list.GalleryNavigationTest,com.hippo.ehviewer.ui.scene.GalleryPreviewNavigationTest,com.hippo.ehviewer.ui.scene.gallery.list.MenuNavigationTest com.xjs.ehviewer.debug1.test/androidx.test.runner.AndroidJUnitRunner
+adb shell am instrument -w -e class com.hippo.ehviewer.ui.scene.gallery.list.GalleryNavigationTest,com.hippo.ehviewer.ui.scene.GalleryPreviewNavigationTest,com.hippo.ehviewer.ui.scene.gallery.list.MenuNavigationTest,com.hippo.ehviewer.ui.scene.gallery.list.TouchNavigationTest com.xjs.ehviewer.debug1.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
 离线验证页只包含在 debug 构建中，可从 `GalleryNavigationTestActivity` 打开；release 构建仅包含正常应用和导航修复。
