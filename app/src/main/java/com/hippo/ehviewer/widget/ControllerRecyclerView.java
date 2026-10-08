@@ -19,6 +19,7 @@ public class ControllerRecyclerView extends EasyRecyclerView {
     @Nullable
     private OnBoundaryListener mOnBoundaryListener;
     private int mConsumedKeyCode = KeyEvent.KEYCODE_UNKNOWN;
+    private int mRestoreFocusPosition = NO_POSITION;
 
     public ControllerRecyclerView(Context context) {
         super(context);
@@ -34,6 +35,29 @@ public class ControllerRecyclerView extends EasyRecyclerView {
 
     public void setOnBoundaryListener(@Nullable OnBoundaryListener listener) {
         mOnBoundaryListener = listener;
+    }
+
+    public void restoreItemFocusAfterLayout(int position) {
+        mRestoreFocusPosition = position;
+        requestLayout();
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+        if (mRestoreFocusPosition != NO_POSITION && !hasPendingAdapterUpdates()) {
+            int position = mRestoreFocusPosition;
+            mRestoreFocusPosition = NO_POSITION;
+            if (hasWindowFocus() && !isInTouchMode()) {
+                ViewHolder holder = findViewHolderForAdapterPosition(position);
+                if (holder == null) {
+                    holder = findViewHolderForAdapterPosition(0);
+                }
+                if (holder != null) {
+                    holder.itemView.requestFocus();
+                }
+            }
+        }
     }
 
     @Override
@@ -85,6 +109,7 @@ public class ControllerRecyclerView extends EasyRecyclerView {
     @Override
     protected void onDetachedFromWindow() {
         mConsumedKeyCode = KeyEvent.KEYCODE_UNKNOWN;
+        mRestoreFocusPosition = NO_POSITION;
         super.onDetachedFromWindow();
     }
 }

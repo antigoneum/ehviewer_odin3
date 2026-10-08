@@ -794,6 +794,10 @@ public class ContentLayout extends FrameLayout {
         }
 
         private void onTypeRefresh(int pages, int nextPage, List<E> data) {
+            View focusedItem = mRecyclerView.getFocusedChild();
+            int focusPosition = focusedItem != null && mRecyclerView.hasWindowFocus()
+                    && !mRecyclerView.isInTouchMode()
+                    ? mRecyclerView.getChildAdapterPosition(focusedItem) : RecyclerView.NO_POSITION;
             mStartPage = 0;
             mEndPage = 1;
             mPages = pages;
@@ -814,6 +818,11 @@ public class ContentLayout extends FrameLayout {
                 mData.addAll(data);
                 onAddData(data);
                 notifyDataSetChanged();
+
+                if (focusPosition != RecyclerView.NO_POSITION) {
+                    // Replacing every card can move native focus out to the toolbar.
+                    ((ControllerRecyclerView) mRecyclerView).restoreItemFocusAfterLayout(focusPosition);
+                }
 
                 // Ui change, show content
                 mRefreshLayout.setHeaderRefreshing(false);
