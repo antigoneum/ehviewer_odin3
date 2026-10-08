@@ -70,7 +70,6 @@ import com.hippo.drawable.AddDeleteDrawable;
 import com.hippo.drawable.DrawerArrowDrawable;
 import com.hippo.drawerlayout.DrawerLayout;
 import com.hippo.easyrecyclerview.EasyRecyclerView;
-import com.hippo.easyrecyclerview.FastScroller;
 import com.hippo.ehviewer.EhApplication;
 import com.hippo.ehviewer.EhDB;
 import com.hippo.ehviewer.FavouriteStatusRouter;
@@ -142,7 +141,7 @@ import java.util.concurrent.ExecutorService;
 
 public final class GalleryListScene extends BaseScene
         implements EasyRecyclerView.OnItemClickListener, EasyRecyclerView.OnItemLongClickListener,
-        SearchBar.Helper, SearchBar.OnStateChangeListener, FastScroller.OnDragHandlerListener,
+        SearchBar.Helper, SearchBar.OnStateChangeListener,
         SearchLayout.Helper, SearchBarMover.Helper, View.OnClickListener, FabLayout.OnClickFabListener,
         FabLayout.OnExpandListener, SubscriptionCallback {
 
@@ -642,8 +641,8 @@ public final class GalleryListScene extends BaseScene
 
         View mainLayout = ViewUtils.$$(view, R.id.main_layout);
         ContentLayout contentLayout = (ContentLayout) ViewUtils.$$(mainLayout, R.id.content_layout);
+        contentLayout.hideFastScroll();
         mRecyclerView = contentLayout.getRecyclerView();
-        FastScroller fastScroller = contentLayout.getFastScroller();
         RefreshLayout refreshLayout = contentLayout.getRefreshLayout();
         mSearchLayout = (SearchLayout) ViewUtils.$$(mainLayout, R.id.search_layout);
         mSearchBar = (SearchBar) ViewUtils.$$(mainLayout, R.id.search_bar);
@@ -662,7 +661,6 @@ public final class GalleryListScene extends BaseScene
 
         mHelper = new GalleryListHelper();
         contentLayout.setHelper(mHelper);
-        contentLayout.getFastScroller().setOnDragHandlerListener(this);
 
         mAdapter = new GalleryListAdapter(inflater, resources,
                 mRecyclerView, Settings.getListMode());
@@ -676,9 +674,6 @@ public final class GalleryListScene extends BaseScene
         assert mOnScrollListener != null;
         mRecyclerView.addOnScrollListener(mOnScrollListener);
 //        mRecyclerView.setOnGenericMotionListener(this::onGenericMotion);
-        fastScroller.setPadding(fastScroller.getPaddingLeft(), fastScroller.getPaddingTop() + paddingTopSB,
-                fastScroller.getPaddingRight(), fastScroller.getPaddingBottom());
-
         refreshLayout.setHeaderTranslationY(paddingTopSB);
 
         mLeftDrawable = new DrawerArrowDrawable(context, AttrResources.getAttrColor(context, R.attr.drawableColorPrimary));
@@ -1813,24 +1808,6 @@ public final class GalleryListScene extends BaseScene
     @Override
     public void onSearchEditTextBackPressed() {
         onBackPressed();
-    }
-
-    @SuppressLint("RtlHardcoded")
-    @Override
-    public void onStartDragHandler() {
-        // Lock right drawer
-        setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED, Gravity.RIGHT);
-    }
-
-    @SuppressLint("RtlHardcoded")
-    @Override
-    public void onEndDragHandler() {
-        // Restore right drawer
-        setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED, Gravity.RIGHT);
-
-        if (null != mSearchBarMover) {
-            mSearchBarMover.returnSearchBarPosition();
-        }
     }
 
     @SuppressLint("RtlHardcoded")

@@ -7,5 +7,10 @@
             android:exported="true"
             android:screenOrientation="landscape"
             android:theme="@style/AppTheme.Main" />
+        <activity
+            android:name="com.hippo.ehviewer.ui.scene.GalleryPreviewNavigationTestActivity"
+            android:exported="true"
+            android:screenOrientation="landscape"
+            android:theme="@style/AppTheme.Main" />
     </application>
 </manifest>

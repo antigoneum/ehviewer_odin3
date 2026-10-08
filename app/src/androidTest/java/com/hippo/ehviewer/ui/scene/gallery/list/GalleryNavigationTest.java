@@ -15,9 +15,14 @@ import android.view.ViewGroup;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.test.platform.app.InstrumentationRegistry;
 
+import com.hippo.ehviewer.client.data.GalleryInfo;
+import com.hippo.widget.ContentLayout;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.util.ArrayList;
 
 public class GalleryNavigationTest {
     private Instrumentation instrumentation;
@@ -99,6 +104,100 @@ public class GalleryNavigationTest {
         instrumentation.runOnMainSync(() -> activity.adapter.setType(GalleryAdapterNew.TYPE_GRID));
         instrumentation.waitForIdleSync();
         checkMovementAndScrolling();
+    }
+
+    private void enablePaging(int pages) {
+        instrumentation.runOnMainSync(() -> activity.enablePaging(pages));
+        instrumentation.waitForIdleSync();
+    }
+
+    @Test
+    public void upAtTheTopRefreshesAndHoldingTheKeyDoesNotRefreshAgain() {
+        enablePaging(1);
+        focusFirstCard();
+        int before = activity.helper.requests;
+        long downTime = SystemClock.uptimeMillis();
+        instrumentation.sendKeySync(new KeyEvent(downTime, downTime,
+                KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_UP, 0));
+        instrumentation.waitForIdleSync();
+        assertEquals(before + 1, activity.helper.requests);
+        assertEquals(ContentLayout.ContentHelper.TYPE_REFRESH, activity.helper.requestType);
+        assertEquals(0, activity.helper.requestPage);
+        assertEquals(0, focusedPosition());
+
+        // Complete loading while the key is still held, then send a hardware repeat.
+        instrumentation.runOnMainSync(() -> activity.completeCurrentPage(1));
+        instrumentation.waitForIdleSync();
+        instrumentation.sendKeySync(new KeyEvent(downTime, SystemClock.uptimeMillis(),
+                KeyEvent.ACTION_DOWN, KeyEvent.KEYCODE_DPAD_UP, 1));
+        instrumentation.sendKeySync(new KeyEvent(downTime, SystemClock.uptimeMillis(),
+                KeyEvent.ACTION_UP, KeyEvent.KEYCODE_DPAD_UP, 0));
+        instrumentation.waitForIdleSync();
+        assertEquals(before + 1, activity.helper.requests);
+        key(KeyEvent.KEYCODE_DPAD_UP);
+        assertEquals(before + 2, activity.helper.requests);
+    }
+
+    @Test
+    public void movingWithinTheListDoesNotTriggerRefresh() {
+        enablePaging(1);
+        focusFirstCard();
+        int before = activity.helper.requests;
+        key(KeyEvent.KEYCODE_DPAD_DOWN);
+        assertTrue(focusedPosition() > 0);
+        key(KeyEvent.KEYCODE_DPAD_UP);
+        assertEquals(before, activity.helper.requests);
+    }
+
+    @Test
+    public void downAtTheEndRefreshesTheLastPage() {
+        enablePaging(1);
+        int last = activity.adapter.getItemCount() - 1;
+        instrumentation.runOnMainSync(() -> activity.recyclerView.scrollToPosition(last));
+        SystemClock.sleep(350);
+        instrumentation.waitForIdleSync();
+        instrumentation.runOnMainSync(() -> assertTrue(
+                activity.recyclerView.findViewHolderForAdapterPosition(last).itemView.requestFocus()));
+        int before = activity.helper.requests;
+        key(KeyEvent.KEYCODE_DPAD_DOWN);
+        assertEquals(before + 1, activity.helper.requests);
+        assertEquals(ContentLayout.ContentHelper.TYPE_REFRESH_PAGE, activity.helper.requestType);
+        assertEquals(last, focusedPosition());
+    }
+
+    @Test
+    public void navigatingDownLoadsTheNextPageAndRetainsTheSelectedCard() {
+        enablePaging(2);
+        focusFirstCard();
+        int before = activity.helper.requests;
+        for (int i = 0; i < 120 && activity.helper.requests == before; i++) {
+            key(KeyEvent.KEYCODE_DPAD_DOWN);
+        }
+        assertEquals(before + 1, activity.helper.requests);
+        assertEquals(ContentLayout.ContentHelper.TYPE_NEXT_PAGE_KEEP_POS, activity.helper.requestType);
+        assertEquals(1, activity.helper.requestPage);
+        int selected = focusedPosition();
+        assertTrue(selected >= 0);
+        ArrayList<GalleryInfo> next = new ArrayList<>();
+        for (int i = 121; i <= 160; i++) {
+            GalleryInfo gallery = new GalleryInfo();
+            gallery.gid = i;
+            gallery.title = "Gallery " + i;
+            next.add(gallery);
+        }
+        instrumentation.runOnMainSync(() -> activity.helper.complete(2, next));
+        SystemClock.sleep(350);
+        instrumentation.waitForIdleSync();
+        assertEquals(160, activity.adapter.getItemCount());
+        assertEquals(selected, focusedPosition());
+    }
+
+    @Test
+    public void listHasNoFastScrollHandle() {
+        instrumentation.runOnMainSync(() -> {
+            assertEquals(View.GONE, activity.content.getFastScroller().getVisibility());
+            assertFalse(activity.content.getFastScroller().isAttached());
+        });
     }
 
     @Test
