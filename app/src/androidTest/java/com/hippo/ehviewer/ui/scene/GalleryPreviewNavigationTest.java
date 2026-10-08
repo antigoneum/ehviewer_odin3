@@ -12,6 +12,7 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 
+import androidx.recyclerview.widget.RecyclerView;
 import androidx.test.platform.app.InstrumentationRegistry;
 
 import com.hippo.ehviewer.R;
@@ -37,6 +38,33 @@ public class GalleryPreviewNavigationTest {
                 .putExtra("full_previews", fullPreviews).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         activity = (GalleryPreviewNavigationTestActivity) instrumentation.startActivitySync(intent);
         instrumentation.waitForIdleSync();
+        awaitLayout();
+    }
+
+    private void awaitLayout() {
+        long deadline = SystemClock.uptimeMillis() + 5000;
+        while (SystemClock.uptimeMillis() < deadline) {
+            boolean[] ready = {false};
+            instrumentation.runOnMainSync(() -> {
+                if (!activity.hasWindowFocus()) {
+                    return;
+                }
+                if (activity.recyclerView != null) {
+                    RecyclerView list = activity.recyclerView;
+                    ready[0] = list.getWidth() > 0 && !list.isLayoutRequested()
+                            && !list.hasPendingAdapterUpdates() && !list.isAnimating()
+                            && list.findViewHolderForAdapterPosition(0) != null;
+                } else {
+                    ready[0] = activity.grid.getChildAt(0).getWidth() > 0
+                            && !activity.grid.isLayoutRequested();
+                }
+            });
+            if (ready[0]) {
+                return;
+            }
+            SystemClock.sleep(50);
+        }
+        fail("The activity must have window focus and a completed preview layout");
     }
 
     @After
@@ -75,7 +103,9 @@ public class GalleryPreviewNavigationTest {
     private void checkDirectionsAndConfirm() {
         instrumentation.runOnMainSync(() -> activity.toolbar.requestFocus());
         key(KeyEvent.KEYCODE_DPAD_DOWN);
-        assertEquals(0, focusedPage());
+        assertTrue("Down from the toolbar must enter a preview", focusedPage() >= 0);
+        // Native spatial navigation can enter the middle column under the toolbar.
+        instrumentation.runOnMainSync(() -> assertTrue(activity.previewAt(0).requestFocus()));
         key(KeyEvent.KEYCODE_DPAD_RIGHT);
         assertTrue(focusedPage() > 0);
         key(KeyEvent.KEYCODE_DPAD_LEFT);

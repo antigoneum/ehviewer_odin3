@@ -36,6 +36,7 @@ public class GalleryNavigationTest {
                 GalleryNavigationTestActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         activity = (GalleryNavigationTestActivity) instrumentation.startActivitySync(intent);
         instrumentation.waitForIdleSync();
+        awaitLayout();
     }
 
     @After
@@ -45,6 +46,8 @@ public class GalleryNavigationTest {
     }
 
     private void focusFirstCard() {
+        instrumentation.runOnMainSync(() -> activity.recyclerView.scrollToPosition(0));
+        awaitLayout();
         instrumentation.runOnMainSync(() -> {
             View first = activity.recyclerView.findViewHolderForAdapterPosition(0).itemView;
             assertEquals(ViewGroup.FOCUS_BLOCK_DESCENDANTS,
@@ -52,6 +55,26 @@ public class GalleryNavigationTest {
             assertTrue(first.requestFocus());
             assertNotNull(first.getForeground());
         });
+    }
+
+    private void awaitLayout() {
+        long deadline = SystemClock.uptimeMillis() + 5000;
+        while (SystemClock.uptimeMillis() < deadline) {
+            boolean[] ready = {false};
+            instrumentation.runOnMainSync(() -> {
+                RecyclerView list = activity.recyclerView;
+                ready[0] = activity.hasWindowFocus() && list.getWidth() > 0
+                        && !list.isLayoutRequested() && !list.hasPendingAdapterUpdates()
+                        && !list.isAnimating()
+                        && list.findViewHolderForAdapterPosition(0) != null;
+            });
+            if (ready[0]) {
+                return;
+            }
+            // Being idle does not imply that the next display frame has laid out the cards.
+            SystemClock.sleep(50);
+        }
+        fail("The activity must have window focus and a completed card layout");
     }
 
     private int focusedPosition() {
@@ -102,13 +125,13 @@ public class GalleryNavigationTest {
     @Test
     public void gridNavigatesBetweenCardsAndScrolls() {
         instrumentation.runOnMainSync(() -> activity.adapter.setType(GalleryAdapterNew.TYPE_GRID));
-        instrumentation.waitForIdleSync();
+        awaitLayout();
         checkMovementAndScrolling();
     }
 
     private void enablePaging(int pages) {
         instrumentation.runOnMainSync(() -> activity.enablePaging(pages));
-        instrumentation.waitForIdleSync();
+        awaitLayout();
     }
 
     @Test
@@ -216,7 +239,7 @@ public class GalleryNavigationTest {
     @Test
     public void gridConfirmOpensTheFocusedGallery() {
         instrumentation.runOnMainSync(() -> activity.adapter.setType(GalleryAdapterNew.TYPE_GRID));
-        instrumentation.waitForIdleSync();
+        awaitLayout();
         focusFirstCard();
         key(KeyEvent.KEYCODE_BUTTON_A);
         assertEquals(1, activity.clicks);
@@ -315,6 +338,7 @@ public class GalleryNavigationTest {
                 0, 0, 1, 1, deviceId, 0, InputDevice.SOURCE_JOYSTICK, 0);
         assertTrue(instrumentation.getUiAutomation().injectInputEvent(event, true));
         event.recycle();
+        SystemClock.sleep(350);
         instrumentation.waitForIdleSync();
     }
 }
