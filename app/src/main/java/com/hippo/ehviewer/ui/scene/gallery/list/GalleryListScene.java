@@ -106,6 +106,7 @@ import com.hippo.ehviewer.ui.scene.gallery.detail.GalleryDetailScene;
 import com.hippo.ehviewer.util.TagTranslationUtil;
 import com.hippo.ehviewer.widget.GalleryInfoContentHelper;
 import com.hippo.ehviewer.widget.JumpDateSelector;
+import com.hippo.ehviewer.widget.ControllerRecyclerView;
 import com.hippo.ehviewer.widget.SearchBar;
 import com.hippo.ehviewer.widget.SearchLayout;
 import com.hippo.lib.yorozuya.AnimationUtils;
@@ -646,6 +647,8 @@ public final class GalleryListScene extends BaseScene
         RefreshLayout refreshLayout = contentLayout.getRefreshLayout();
         mSearchLayout = (SearchLayout) ViewUtils.$$(mainLayout, R.id.search_layout);
         mSearchBar = (SearchBar) ViewUtils.$$(mainLayout, R.id.search_bar);
+        ((ControllerRecyclerView) mRecyclerView).setLeftFocusView(
+                mSearchBar.findViewById(R.id.search_menu));
         mFabLayout = (FabLayout) ViewUtils.$$(mainLayout, R.id.fab_layout);
         mFloatingActionButton = (FloatingActionButton) ViewUtils.$$(mFabLayout, R.id.tag_filter);
 

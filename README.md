@@ -1,6 +1,6 @@
 # EhViewer
 
-本 fork 增加奥丁 3 左摇杆／十字键的首页卡片导航，支持列表和缩略图网格、焦点边框及确认键打开画廊。操作、构建及设备测试见 [奥丁 3 适配说明](ODIN3.md)。
+本 fork 增加奥丁 3 左摇杆／十字键的首页卡片导航，支持列表和缩略图网格、原生焦点高亮及确认键打开画廊。操作、构建及设备测试见 [奥丁 3 适配说明](ODIN3.md)。
 ## 本APP有且仅在Github更新，所有自诩“官网”的均属虚假信息，请注意甄别
 
 ### [常见问题汇总](https://github.com/xiaojieonly/Ehviewer_CN_SXJ/blob/BiLi_PC_Gamer/feedauthor/EhviewerIssue.md)

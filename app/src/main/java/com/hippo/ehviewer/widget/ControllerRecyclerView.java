@@ -1,3 +1,19 @@
+/*
+ * Copyright 2026 antigone
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.hippo.ehviewer.widget;
 
 import android.content.Context;
@@ -18,6 +34,8 @@ public class ControllerRecyclerView extends EasyRecyclerView {
 
     @Nullable
     private OnBoundaryListener mOnBoundaryListener;
+    @Nullable
+    private View mLeftFocusView;
     private int mConsumedKeyCode = KeyEvent.KEYCODE_UNKNOWN;
     private int mRestoreFocusPosition = NO_POSITION;
 
@@ -35,6 +53,21 @@ public class ControllerRecyclerView extends EasyRecyclerView {
 
     public void setOnBoundaryListener(@Nullable OnBoundaryListener listener) {
         mOnBoundaryListener = listener;
+    }
+
+    public void setLeftFocusView(@Nullable View view) {
+        mLeftFocusView = view;
+    }
+
+    @Override
+    public View focusSearch(View focused, int direction) {
+        if (direction == FOCUS_LEFT && mLeftFocusView != null && mLeftFocusView.isShown()
+                && mLeftFocusView.isFocusable() && findContainingItemView(focused) != null
+                && FocusFinder.getInstance().findNextFocus(this, focused, direction) == null) {
+            // Toolbar buttons can sit above, rather than geometrically left of, the first column.
+            return mLeftFocusView;
+        }
+        return super.focusSearch(focused, direction);
     }
 
     public void restoreItemFocusAfterLayout(int position) {
